@@ -13,8 +13,16 @@ const (
 	IDENT = "IDENT" // 标识符和字面量
 	INT   = "INT"
 
-	ASSIGN = "=" // 运算符
-	PLUS   = "+"
+	ASSIGN   = "=" // 运算符
+	PLUS     = "+"
+	MINUS    = "-"
+	BANG     = "!"
+	ASTERISK = "*"
+	SLASH    = "/"
+	LT       = "<"
+	GT       = ">"
+	EQ       = "=="
+	NEQ      = "!="
 
 	COMMA     = "," // 分隔符
 	SEMICOLON = ";"
@@ -26,12 +34,22 @@ const (
 
 	FUNCTION = "FUNCTION" // 关键字
 	LET      = "LET"
+	TRUE     = "TRUE"
+	FALSE    = "FALSE"
+	IF       = "IF"
+	ELSE     = "ELSE"
+	RETURN   = "RETURN"
 )
 
 // 语言的关键字
 var keywords = map[string]TokenType{
-	"fn":  FUNCTION,
-	"let": LET,
+	"fn":     FUNCTION,
+	"let":    LET,
+	"true":   TRUE,
+	"false":  FALSE,
+	"if":     IF,
+	"else":   ELSE,
+	"return": RETURN,
 }
 
 // LookupIdent  根据标识符返回对应的TokenType
