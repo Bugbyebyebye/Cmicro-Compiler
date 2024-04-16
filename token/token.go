@@ -10,8 +10,9 @@ const (
 	ILLEGAL = "ILLEGAL" //未知词法单元
 	EOF     = "EOF"     //文件结尾
 
-	IDENT = "IDENT" // 标识符和字面量
-	INT   = "INT"
+	IDENT  = "IDENT" // 标识符和字面量
+	INT    = "INT"
+	STRING = "STRING"
 
 	ASSIGN   = "=" // 运算符
 	PLUS     = "+"

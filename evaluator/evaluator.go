@@ -61,6 +61,8 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		env.Set(node.Name.Value, val)
 	case *ast.Identifier: // 变量
 		return evalIdentifier(node, env)
+	case *ast.StringLiteral:
+		return &object.String{Value: node.Value}
 	case *ast.FunctionLiteral: // 函数
 		params := node.Parameters
 		body := node.Body
@@ -116,11 +118,15 @@ func evalBlockStatement(block *ast.BlockStatement, env *object.Environment) obje
 }
 func evalIdentifier(node *ast.Identifier, env *object.Environment) object.Object {
 	// 从环境变量中获取值
-	val, ok := env.Get(node.Value)
-	if !ok {
-		return newError("identifier not found: " + node.Value)
+	if val, ok := env.Get(node.Value); ok {
+		return val
 	}
-	return val
+
+	if builtin, ok := builtins[node.Value]; ok {
+		return builtin
+	}
+
+	return newError("identifier not found: " + node.Value)
 }
 func evalExpressions(exps []ast.Expression, env *object.Environment) []object.Object {
 	// 遍历表达式列表，在当前环境的上下文中求值，如果遇到错误，就停止求值并返回错误
@@ -136,15 +142,17 @@ func evalExpressions(exps []ast.Expression, env *object.Environment) []object.Ob
 	return result
 }
 func applyFunction(fn object.Object, args []object.Object) object.Object {
-	// 函数求值
-	function, ok := fn.(*object.Function)
-	if !ok {
+	switch fn := fn.(type) {
+	case *object.Function:
+		extendedEnv := extendFunctionEnv(fn, args)
+		evaluated := Eval(fn.Body, extendedEnv)
+		return unwrapReturnValue(evaluated)
+	case *object.Builtin:
+		return fn.Fn(args...)
+	default:
 		return newError("not a function: %s", fn.Type())
 	}
 
-	extendedEnv := extendFunctionEnv(function, args)
-	evaluated := Eval(function.Body, extendedEnv)
-	return unwrapReturnValue(evaluated)
 }
 func extendFunctionEnv(fn *object.Function, args []object.Object) *object.Environment {
 	// 创建函数环境
@@ -215,6 +223,8 @@ func evalInfixExpression(operator string, left, right object.Object) object.Obje
 		return nativeBoolToBooleanObject(left == right)
 	case operator == "!=":
 		return nativeBoolToBooleanObject(left != right)
+	case left.Type() == object.STRING_OBJ && right.Type() == object.STRING_OBJ:
+		return evalStringInfixExpression(operator, left, right)
 	case left.Type() != right.Type():
 		return newError("type mismatch: %s %s %s", left.Type(), operator, right.Type())
 	default:
@@ -279,6 +289,18 @@ func isTruthy(obj object.Object) bool {
 	}
 }
 
+// evalStringInfixExpression 字符串拼接运算
+func evalStringInfixExpression(operator string, left, right object.Object) object.Object {
+	if operator != "+" {
+		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
+	}
+
+	leftVal := left.(*object.String).Value
+	rightVal := right.(*object.String).Value
+
+	return &object.String{Value: leftVal + rightVal}
+}
+
 // 错误处理
 func newError(format string, a ...interface{}) object.Object {
 	return &object.Error{Message: fmt.Sprintf(format, a...)}
@@ -289,4 +311,17 @@ func isError(obj object.Object) bool {
 		return obj.Type() == object.ERROR_OBJ
 	}
 	return false
+}
+
+// 内置函数
+func evalBuiltin(node *ast.Identifier, env *object.Environment) object.Object {
+	if val, ok := env.Get(node.Value); ok {
+		return val
+	}
+
+	if builtin, ok := builtins[node.Value]; ok {
+		return builtin
+	}
+
+	return newError("identifier not found: " + node.Value)
 }
