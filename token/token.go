@@ -14,16 +14,18 @@ const (
 	INT    = "INT"
 	STRING = "STRING"
 
-	ASSIGN   = "=" // 运算符
-	PLUS     = "+"
-	MINUS    = "-"
-	BANG     = "!"
-	ASTERISK = "*"
-	SLASH    = "/"
-	LT       = "<"
-	GT       = ">"
-	EQ       = "=="
-	NEQ      = "!="
+	ASSIGN    = "=" // 运算符
+	PLUS      = "+"
+	INCREMENT = "++"
+	DECREMENT = "--"
+	MINUS     = "-"
+	BANG      = "!"
+	ASTERISK  = "*"
+	SLASH     = "/"
+	LT        = "<"
+	GT        = ">"
+	EQ        = "=="
+	NEQ       = "!="
 
 	COMMA     = "," // 分隔符
 	SEMICOLON = ";"
@@ -40,6 +42,8 @@ const (
 	IF       = "IF"
 	ELSE     = "ELSE"
 	RETURN   = "RETURN"
+
+	FOR = "FOR"
 )
 
 // 语言的关键字
@@ -51,6 +55,8 @@ var keywords = map[string]TokenType{
 	"if":     IF,
 	"else":   ELSE,
 	"return": RETURN,
+
+	"for": FOR,
 }
 
 // LookupIdent  根据标识符返回对应的TokenType

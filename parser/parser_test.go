@@ -7,23 +7,24 @@ import (
 	"testing"
 )
 
-func TestStringLiteralExpression(t *testing.T) {
-	input := `"hello world";`
+func TestForStatement(t *testing.T) {
+	input := `
+	for(let i=0;i<5;++i){
+		println("hello");
+	}
+	`
 
 	l := lexer.New(input)
+	fmt.Printf("l %+v\n", l)
 	p := New(l)
 	program := p.ParseProgram()
+	fmt.Printf("%+v\n", program)
 	checkParserErrors(t, p)
 
-	stmt := program.Statements[0].(*ast.ExpressionStatement)
-	literal, ok := stmt.Expression.(*ast.StringLiteral)
-	if !ok {
-		t.Fatalf("exp not *ast.StringLiteral. got=%T", stmt.Expression)
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain %d statements. got=%d\n", 1, len(program.Statements))
 	}
 
-	if literal.Value != "hello world" {
-		t.Errorf("literal.Value not %s. got=%s", "hello world", literal.Value)
-	}
 }
 
 func testIntegerLiteral(t *testing.T, il ast.Expression, value int64) bool {

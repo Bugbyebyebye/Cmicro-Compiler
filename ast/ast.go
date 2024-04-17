@@ -217,6 +217,35 @@ func (ie *IfExpression) String() string {
 	return out.String()
 }
 
+// ForExpression 节点 解析 for 语句
+type ForExpression struct {
+	Token     token.Token
+	Init      *LetStatement
+	Condition Expression
+	Post      *ExpressionStatement
+	Body      *BlockStatement
+}
+
+func (fl *ForExpression) expressionNode() {}
+func (fl *ForExpression) TokenLiteral() string {
+	return fl.Token.Literal
+}
+func (fl *ForExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("for")
+	out.WriteString(fl.Init.String())
+	out.WriteString(" ")
+	out.WriteString(fl.Condition.String())
+	out.WriteString(" ")
+	out.WriteString(fl.Post.String())
+	out.WriteString(" ")
+	if fl.Body != nil {
+		out.WriteString(fl.Body.String())
+	}
+	return out.String()
+}
+
 type BlockStatement struct {
 	Token      token.Token // {
 	Statements []Statement

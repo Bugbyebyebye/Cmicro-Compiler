@@ -59,6 +59,8 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return val
 		}
 		env.Set(node.Name.Value, val)
+	case *ast.ForExpression: // for循环
+		return evalForStatement(node, env)
 	case *ast.Identifier: // 变量
 		return evalIdentifier(node, env)
 	case *ast.StringLiteral:
@@ -186,6 +188,10 @@ func evalPrefixExpression(operator string, right object.Object) object.Object {
 		return evalBangOperatorExpression(right)
 	case "-":
 		return evalMinusPrefixOperatorExpression(right)
+	case "++":
+		return evalIncrementPrefixOperatorExpression(right)
+	case "--":
+		return evalDecrementPrefixOperatorExpression(right)
 	default:
 		return newError("unknown operator: %s%s", operator, right.Type())
 	}
@@ -212,6 +218,22 @@ func evalMinusPrefixOperatorExpression(right object.Object) object.Object {
 
 	value := right.(*object.Integer).Value
 	return &object.Integer{Value: -value}
+}
+func evalIncrementPrefixOperatorExpression(right object.Object) object.Object {
+	if right.Type() != object.INTEGER_OBJ {
+		return newError("unknown operator: ++%s", right.Type())
+	}
+
+	value := right.(*object.Integer).Value
+	return &object.Integer{Value: value + 1}
+}
+func evalDecrementPrefixOperatorExpression(right object.Object) object.Object {
+	if right.Type() != object.INTEGER_OBJ {
+		return newError("unknown operator: --%s", right.Type())
+	}
+
+	value := right.(*object.Integer).Value
+	return &object.Integer{Value: value - 1}
 }
 
 // evalInfixExpression 中缀表达式求值
@@ -287,6 +309,35 @@ func isTruthy(obj object.Object) bool {
 	default:
 		return true
 	}
+}
+
+// evalForStatement For语句求值
+func evalForStatement(fs *ast.ForExpression, env *object.Environment) object.Object {
+	if fs.Init != nil {
+		Eval(fs.Init, env)
+	}
+	for {
+		if fs.Condition != nil {
+			condition := Eval(fs.Condition, env)
+			if isError(condition) {
+				return condition
+			}
+			if !isTruthy(condition) {
+				break
+			}
+		}
+
+		evaluated := Eval(fs.Body, env)
+		if isError(evaluated) {
+			return evaluated
+		}
+
+		if fs.Post != nil {
+			Eval(fs.Post, env)
+		}
+	}
+
+	return NULL
 }
 
 // evalStringInfixExpression 字符串拼接运算

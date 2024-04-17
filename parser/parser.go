@@ -22,15 +22,17 @@ const (
 
 // 优先级表 将token和优先级对应起来
 var parsePrecedences = map[token.TokenType]int{
-	token.EQ:       EQUALS,
-	token.NEQ:      EQUALS,
-	token.LT:       LESSGREATER,
-	token.GT:       LESSGREATER,
-	token.PLUS:     SUM,
-	token.MINUS:    SUM,
-	token.SLASH:    PRODUCT,
-	token.ASTERISK: PRODUCT,
-	token.LPAREN:   CALL,
+	token.EQ:        EQUALS,
+	token.NEQ:       EQUALS,
+	token.LT:        LESSGREATER,
+	token.GT:        LESSGREATER,
+	token.INCREMENT: PREFIX,
+	token.DECREMENT: PREFIX,
+	token.PLUS:      SUM,
+	token.MINUS:     SUM,
+	token.SLASH:     PRODUCT,
+	token.ASTERISK:  PRODUCT,
+	token.LPAREN:    CALL,
 }
 
 // 获取当前token的优先级
@@ -78,8 +80,11 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.FALSE, p.parseBoolean)
 	p.registerPrefix(token.LPAREN, p.parseGroupedExpression)
 	p.registerPrefix(token.IF, p.parseIfExpression)
+	p.registerPrefix(token.FOR, p.parseForExpression)
 	p.registerPrefix(token.FUNCTION, p.parseFunctionLiteral)
 	p.registerPrefix(token.STRING, p.parseStringLiteral)
+	p.registerPrefix(token.INCREMENT, p.parsePrefixExpression)
+	p.registerPrefix(token.DECREMENT, p.parsePrefixExpression)
 
 	p.infixParseFns = make(map[token.TokenType]infixParseFn) //中缀表达式
 	p.registerInfix(token.PLUS, p.parseInfixExpression)
@@ -226,6 +231,7 @@ func (p *Parser) parseIfExpression() ast.Expression {
 
 	p.nextToken()
 	expression.Condition = p.parseExpression(LOWEST)
+	fmt.Printf("condition %v\n", expression.Condition)
 
 	if !p.expectPeek(token.RPAREN) {
 		return nil
@@ -244,6 +250,38 @@ func (p *Parser) parseIfExpression() ast.Expression {
 		}
 		expression.Alternative = p.parseBlockStatement()
 	}
+
+	return expression
+}
+
+// 解析 for 循环表达式 TODO
+func (p *Parser) parseForExpression() ast.Expression {
+	expression := &ast.ForExpression{Token: p.curToken}
+	if !p.expectPeek(token.LPAREN) {
+		fmt.Printf("1\n")
+		return nil
+	}
+
+	p.nextToken()
+	expression.Init = p.parseLetStatement()
+
+	p.nextToken()
+	expression.Condition = p.parseExpression(LOWEST)
+	if !p.expectPeek(token.SEMICOLON) {
+		return nil
+	}
+
+	p.nextToken()
+	expression.Post = p.parseExpressionStatement()
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+	if !p.expectPeek(token.LBRACE) {
+		return nil
+	}
+
+	p.nextToken()
+	expression.Body = p.parseBlockStatement()
 
 	return expression
 }

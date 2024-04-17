@@ -1,6 +1,9 @@
 package evaluator
 
-import "Cmicro-Compiler/object"
+import (
+	"Cmicro-Compiler/object"
+	"fmt"
+)
 
 /**
  * @Description: 内置函数
@@ -21,6 +24,21 @@ var builtins = map[string]*object.Builtin{
 			default:
 				return newError("argument to `len` not supported, got %s", args[0].Type())
 			}
+		},
+	},
+	"println": {
+		Fn: func(args ...object.Object) object.Object {
+			return args[0]
+		},
+	},
+	"input": {
+		Fn: func(args ...object.Object) object.Object {
+			var input string
+			_, err := fmt.Scanln(&input)
+			if err != nil {
+				return newError("argument to `input` not supported, got %s", args[0].Type())
+			}
+			return &object.String{Value: input}
 		},
 	},
 }
