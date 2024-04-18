@@ -246,6 +246,7 @@ func (fl *ForExpression) String() string {
 	return out.String()
 }
 
+// BlockStatement 节点 解析块语句
 type BlockStatement struct {
 	Token      token.Token // {
 	Statements []Statement
@@ -326,4 +327,24 @@ func (sl *StringLiteral) TokenLiteral() string {
 }
 func (sl *StringLiteral) String() string {
 	return sl.Token.Literal
+}
+
+// AssignStatement 节点 解析赋值语句
+type AssignStatement struct {
+	Token token.Token
+	Name  *Identifier
+	Value Expression
+}
+
+func (as *AssignStatement) statementNode() {}
+func (as *AssignStatement) TokenLiteral() string {
+	return as.Token.Literal
+}
+func (as *AssignStatement) String() string {
+	var out bytes.Buffer
+
+	out.WriteString(as.Name.String())
+	out.WriteString(" = ")
+	out.WriteString(as.Value.String())
+	return out.String()
 }

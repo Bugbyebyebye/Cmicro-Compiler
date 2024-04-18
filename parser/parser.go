@@ -129,6 +129,12 @@ func (p *Parser) parseStatement() ast.Statement {
 	switch p.curToken.Type {
 	case token.LET:
 		return p.parseLetStatement()
+	case token.IDENT:
+		if p.peekTokenIs(token.ASSIGN) {
+			return p.parseAssignStatement()
+		} else {
+			return p.parseExpressionStatement()
+		}
 	case token.RETURN:
 		return p.parseReturnStatement()
 	default:
@@ -162,6 +168,19 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	p.nextToken()
 
 	stmt.ReturnValue = p.parseExpression(LOWEST)
+	for !p.curTokenIs(token.SEMICOLON) {
+		p.nextToken()
+	}
+	return stmt
+}
+
+// parseAssignStatement 解析赋值语句
+func (p *Parser) parseAssignStatement() ast.Statement {
+	stmt := &ast.AssignStatement{Token: p.curToken}
+	stmt.Name = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+	p.nextToken()
+	p.nextToken()
+	stmt.Value = p.parseExpression(LOWEST)
 	for !p.curTokenIs(token.SEMICOLON) {
 		p.nextToken()
 	}
@@ -254,11 +273,10 @@ func (p *Parser) parseIfExpression() ast.Expression {
 	return expression
 }
 
-// 解析 for 循环表达式 TODO
+// 解析 for 循环表达式
 func (p *Parser) parseForExpression() ast.Expression {
 	expression := &ast.ForExpression{Token: p.curToken}
 	if !p.expectPeek(token.LPAREN) {
-		fmt.Printf("1\n")
 		return nil
 	}
 
@@ -280,7 +298,7 @@ func (p *Parser) parseForExpression() ast.Expression {
 		return nil
 	}
 
-	p.nextToken()
+	//p.nextToken()
 	expression.Body = p.parseBlockStatement()
 
 	return expression

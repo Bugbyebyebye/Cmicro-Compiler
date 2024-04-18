@@ -32,7 +32,9 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		if isError(right) {
 			return right
 		}
-		return evalPrefixExpression(node.Operator, right)
+		result := evalPrefixExpression(node.Operator, right)
+		env.Set(node.Right.String(), result)
+		return result
 	case *ast.InfixExpression: // 中缀运算符
 		left := Eval(node.Left, env)
 		if isError(left) {
@@ -53,14 +55,16 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return val
 		}
 		return &object.ReturnValue{Value: val}
-	case *ast.LetStatement: // 变量赋值
+	case *ast.LetStatement: // 变量初始化 let
 		val := Eval(node.Value, env)
 		if isError(val) {
 			return val
 		}
 		env.Set(node.Name.Value, val)
+	case *ast.AssignStatement: //变量赋值
+		return evalAssignStatement(node, env)
 	case *ast.ForExpression: // for循环
-		return evalForStatement(node, env)
+		return evalForExpression(node, env)
 	case *ast.Identifier: // 变量
 		return evalIdentifier(node, env)
 	case *ast.StringLiteral:
@@ -312,7 +316,9 @@ func isTruthy(obj object.Object) bool {
 }
 
 // evalForStatement For语句求值
-func evalForStatement(fs *ast.ForExpression, env *object.Environment) object.Object {
+func evalForExpression(fs *ast.ForExpression, env *object.Environment) object.Object {
+	//var result object.Object
+
 	if fs.Init != nil {
 		Eval(fs.Init, env)
 	}
@@ -320,24 +326,44 @@ func evalForStatement(fs *ast.ForExpression, env *object.Environment) object.Obj
 		if fs.Condition != nil {
 			condition := Eval(fs.Condition, env)
 			if isError(condition) {
-				return condition
+				return newError("condition must be present in for loop")
 			}
 			if !isTruthy(condition) {
+				// 跳出循环
 				break
 			}
+		} else {
+			return newError("condition must be present in for loop")
 		}
 
 		evaluated := Eval(fs.Body, env)
 		if isError(evaluated) {
-			return evaluated
+			return newError("for loop body error")
+		} else {
+			fmt.Printf("%v", evaluated.Inspect())
 		}
-
 		if fs.Post != nil {
 			Eval(fs.Post, env)
 		}
 	}
 
-	return NULL
+	return nil
+}
+
+// evalAssignStatement 赋值语句求值
+func evalAssignStatement(as *ast.AssignStatement, env *object.Environment) object.Object {
+	value := Eval(as.Value, env)
+	if isError(value) {
+		return value
+	}
+
+	name := as.Name.Value
+	if obj, ok := env.Get(name); ok {
+		env.Set(name, value)
+		return obj
+	}
+
+	return newError("identifier not found: " + name)
 }
 
 // evalStringInfixExpression 字符串拼接运算

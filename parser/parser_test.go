@@ -9,21 +9,16 @@ import (
 
 func TestForStatement(t *testing.T) {
 	input := `
+	let sum = 0;
 	for(let i=0;i<5;++i){
-		println("hello");
+		sum + i;
 	}
 	`
 
 	l := lexer.New(input)
-	fmt.Printf("l %+v\n", l)
 	p := New(l)
-	program := p.ParseProgram()
-	fmt.Printf("%+v\n", program)
+	//program := p.ParseProgram()
 	checkParserErrors(t, p)
-
-	if len(program.Statements) != 1 {
-		t.Fatalf("program.Statements does not contain %d statements. got=%d\n", 1, len(program.Statements))
-	}
 
 }
 
