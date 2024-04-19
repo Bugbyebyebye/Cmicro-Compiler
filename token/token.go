@@ -30,12 +30,14 @@ const (
 	COMMA     = "," // 分隔符
 	SEMICOLON = ";"
 
-	LPAREN   = "("
-	RPAREN   = ")"
-	LBRACE   = "{"
-	RBRACE   = "}"
+	LPAREN = "("
+	RPAREN = ")"
+	LBRACE = "{"
+	RBRACE = "}"
+
 	LBRACKET = "["
 	RBRACKET = "]"
+	COLON    = ":"
 
 	FUNCTION = "FUNCTION" // 关键字
 	LET      = "LET"

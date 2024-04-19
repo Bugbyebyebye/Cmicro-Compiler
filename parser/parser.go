@@ -88,6 +88,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.INCREMENT, p.parsePrefixExpression)
 	p.registerPrefix(token.DECREMENT, p.parsePrefixExpression)
 	p.registerPrefix(token.LBRACKET, p.parseArrayLiteral)
+	p.registerPrefix(token.LBRACE, p.parseHashLiteral)
 
 	p.infixParseFns = make(map[token.TokenType]infixParseFn) //中缀表达式
 	p.registerInfix(token.PLUS, p.parseInfixExpression)
@@ -213,6 +214,7 @@ func (p *Parser) parseArrayLiteral() ast.Expression {
 	return array
 }
 
+// parseIndexExpression 解析数组索引表达式
 func (p *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
 	exp := &ast.IndexExpression{Token: p.curToken, Left: left}
 	p.nextToken()
@@ -221,6 +223,32 @@ func (p *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
 		return nil
 	}
 	return exp
+}
+
+// parseHashLiteral 解析哈希字面量
+func (p *Parser) parseHashLiteral() ast.Expression {
+	hash := &ast.HashLiteral{Token: p.curToken}
+	hash.Pairs = make(map[ast.Expression]ast.Expression)
+
+	for !p.peekTokenIs(token.RBRACE) {
+		p.nextToken()
+		key := p.parseExpression(LOWEST)
+		if !p.expectPeek(token.COLON) {
+			return nil
+		}
+		p.nextToken()
+		value := p.parseExpression(LOWEST)
+		hash.Pairs[key] = value
+		if !p.peekTokenIs(token.RBRACE) && !p.expectPeek(token.COMMA) {
+			return nil
+		}
+	}
+
+	if !p.expectPeek(token.RBRACE) {
+		return nil
+	}
+
+	return hash
 }
 
 // parseBoolean 解析布尔字面量
