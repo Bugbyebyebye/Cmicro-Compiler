@@ -250,7 +250,7 @@ func (p *Parser) parseIfExpression() ast.Expression {
 
 	p.nextToken()
 	expression.Condition = p.parseExpression(LOWEST)
-	fmt.Printf("condition %v\n", expression.Condition)
+	//fmt.Printf("condition %v\n", expression.Condition)
 
 	if !p.expectPeek(token.RPAREN) {
 		return nil
@@ -273,7 +273,7 @@ func (p *Parser) parseIfExpression() ast.Expression {
 	return expression
 }
 
-// 解析 for 循环表达式
+// parseForExpression 解析 for 循环表达式 TODO 嵌套for循环
 func (p *Parser) parseForExpression() ast.Expression {
 	expression := &ast.ForExpression{Token: p.curToken}
 	if !p.expectPeek(token.LPAREN) {

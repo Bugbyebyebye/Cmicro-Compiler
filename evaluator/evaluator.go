@@ -123,7 +123,7 @@ func evalBlockStatement(block *ast.BlockStatement, env *object.Environment) obje
 	return result
 }
 func evalIdentifier(node *ast.Identifier, env *object.Environment) object.Object {
-	// 从环境变量中获取值
+	// 从环境变量中获取 内置函数
 	if val, ok := env.Get(node.Value); ok {
 		return val
 	}
@@ -185,7 +185,7 @@ func nativeBoolToBooleanObject(input bool) *object.Boolean {
 	return FALSE
 }
 
-// evalPrefixExpression 前缀表达式求值
+// evalPrefixExpression 前缀表达式匹配求值方法
 func evalPrefixExpression(operator string, right object.Object) object.Object {
 	switch operator {
 	case "!":
@@ -276,6 +276,10 @@ func evalIntegerInfixExpression(operator string, left, right object.Object) obje
 		return nativeBoolToBooleanObject(leftVal < rightVal)
 	case ">":
 		return nativeBoolToBooleanObject(leftVal > rightVal)
+	case "<=":
+		return nativeBoolToBooleanObject(leftVal <= rightVal)
+	case ">=":
+		return nativeBoolToBooleanObject(leftVal >= rightVal)
 	case "==":
 		return nativeBoolToBooleanObject(leftVal == rightVal)
 	case "!=":
@@ -317,7 +321,7 @@ func isTruthy(obj object.Object) bool {
 
 // evalForStatement For语句求值
 func evalForExpression(fs *ast.ForExpression, env *object.Environment) object.Object {
-	//var result object.Object
+	var result object.Object
 
 	if fs.Init != nil {
 		Eval(fs.Init, env)
@@ -340,14 +344,14 @@ func evalForExpression(fs *ast.ForExpression, env *object.Environment) object.Ob
 		if isError(evaluated) {
 			return newError("for loop body error")
 		} else {
-			fmt.Printf("%v", evaluated.Inspect())
+			result = evaluated
 		}
 		if fs.Post != nil {
 			Eval(fs.Post, env)
 		}
 	}
 
-	return nil
+	return result
 }
 
 // evalAssignStatement 赋值语句求值
@@ -358,9 +362,9 @@ func evalAssignStatement(as *ast.AssignStatement, env *object.Environment) objec
 	}
 
 	name := as.Name.Value
-	if obj, ok := env.Get(name); ok {
+	if _, ok := env.Get(name); ok {
 		env.Set(name, value)
-		return obj
+		return value
 	}
 
 	return newError("identifier not found: " + name)
