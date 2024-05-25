@@ -47,19 +47,21 @@ func Start(in io.Reader, out io.Writer) {
 		comp := compiler.New()
 		err := comp.Compile(program)
 		if err != nil {
-			fmt.Fprintf(out, "Woops! Compilation fialed:\n %s\n", err)
+			fmt.Fprintf(out, "编译失败:\n %s\n", err)
 			continue
 		}
 
 		machine := vm.New(comp.Bytecode())
 		err = machine.Run()
 		if err != nil {
-			fmt.Fprintf(out, "Woops! Executing bytecode fialed:\n %s\n", err)
+			fmt.Fprintf(out, "执行字节码失败:\n %s\n", err)
 			continue
 		}
 
-		stackTop := machine.StackTop()
-		io.WriteString(out, stackTop.Inspect())
+		////stackTop := machine.StackTop()
+		//io.WriteString(out, stackTop.Inspect())
+		lastPopped := machine.LastPoppedStackElem()
+		io.WriteString(out, lastPopped.Inspect())
 		io.WriteString(out, "\n")
 	}
 }
