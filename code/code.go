@@ -12,23 +12,25 @@ const (
 	OpConstant Opcode = iota
 	OpAdd
 	OpPop
-	/*减，乘法，除法*/
+	// OpSub /*减，乘法，除法*/
 	OpSub
 	OpMul
 	OpDiv
-	//布尔值
+	// OpTrue 布尔值
 	OpTrue
 	OpFalse
-	//比较
+	// OpEqual 比较
 	OpEqual
 	OpNotEqual
 	OpGreaterThan
-	//负号和非
+	// OpMinus 负号和非
 	OpMinus
 	OpBang
-	//跳转
+	// OpJumpNotTruthy 跳转
 	OpJumpNotTruthy
 	OpJump
+	// OpNull 空
+	OpNull
 )
 
 type Definition struct {
@@ -52,6 +54,7 @@ var definitions = map[Opcode]*Definition{
 	OpBang:          {"OpBang", []int{}},
 	OpJumpNotTruthy: {"OpJumpNotTruthy", []int{2}},
 	OpJump:          {"OpJump", []int{2}},
+	OpNull:          {"OpNull", []int{}},
 }
 
 type Instructions []byte

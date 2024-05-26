@@ -126,16 +126,21 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.removeLastPop()
 		}
 
+		//if node.Alternative == nil {
+		//	afterConsequencePos := len(c.instructions)
+		//	c.changeOperand(jumpNotTruthyPos, afterConsequencePos)
+		//} else {
+		// Emit an `OpJump` with a bogus value
+		jumpPos := c.emit(code.OpJump, 9999)
+
+		//afterConsequencePos := len(c.instructions)
+		//c.changeOperand(jumpNotTruthyPos, afterConsequencePos)
+		afterConsequencePos := len(c.instructions)
+		c.changeOperand(jumpNotTruthyPos, afterConsequencePos)
+
 		if node.Alternative == nil {
-			afterConsequencePos := len(c.instructions)
-			c.changeOperand(jumpNotTruthyPos, afterConsequencePos)
+			c.emit(code.OpNull)
 		} else {
-			// Emit an `OpJump` with a bogus value
-			jumpPos := c.emit(code.OpJump, 9999)
-
-			afterConsequencePos := len(c.instructions)
-			c.changeOperand(jumpNotTruthyPos, afterConsequencePos)
-
 			err := c.Compile(node.Alternative)
 			if err != nil {
 				return err
@@ -145,9 +150,13 @@ func (c *Compiler) Compile(node ast.Node) error {
 				c.removeLastPop()
 			}
 
-			afterAlternativePos := len(c.instructions)
-			c.changeOperand(jumpPos, afterAlternativePos)
+			//afterAlternativePos := len(c.instructions)
+			//c.changeOperand(jumpPos, afterAlternativePos)
 		}
+
+		afterAlternative := len(c.instructions)
+		c.changeOperand(jumpPos, afterAlternative)
+
 	case *ast.BlockStatement:
 		for _, s := range node.Statements {
 			err := c.Compile(s)
@@ -155,9 +164,11 @@ func (c *Compiler) Compile(node ast.Node) error {
 				return err
 			}
 		}
+
 	case *ast.IntegerLiteral:
 		integer := &object.Integer{Value: node.Value}
 		c.emit(code.OpConstant, c.addConstant(integer))
+
 	case *ast.Boolean:
 		if node.Value {
 			c.emit(code.OpTrue)
