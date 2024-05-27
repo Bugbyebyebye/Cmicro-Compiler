@@ -223,8 +223,9 @@ type Hashable interface {
 
 // 编译后的函数，包含编译指令
 type CompiledFunction struct {
-	Instructions code.Instructions
-	NumLocals    int
+	Instructions  code.Instructions
+	NumLocals     int
+	NumParameters int
 }
 
 func (cf *CompiledFunction) Type() ObjectType { return CompliledFunction_OBJ }
