@@ -2,6 +2,7 @@ package object
 
 import (
 	"Cmicro-Compiler/ast"
+	"Cmicro-Compiler/code"
 	"bytes"
 	"fmt"
 	"hash/fnv"
@@ -12,16 +13,17 @@ type ObjectType string
 
 // 数据类型
 const (
-	INTEGER_OBJ  = "INTEGER"
-	BOOLEAN_OBJ  = "BOOLEAN"
-	NULL_OBJ     = "NULL"
-	RETURN_OBJ   = "RETURN_VALUE"
-	ERROR_OBJ    = "ERROR"
-	FUNCTION_OBJ = "FUNCTION"
-	STRING_OBJ   = "STRING"
-	BUILTIN_OBJ  = "BUILTIN"
-	ARRAY_OBJ    = "ARRAY"
-	HASH_OBJ     = "HASH"
+	INTEGER_OBJ           = "INTEGER"
+	BOOLEAN_OBJ           = "BOOLEAN"
+	NULL_OBJ              = "NULL"
+	RETURN_OBJ            = "RETURN_VALUE"
+	ERROR_OBJ             = "ERROR"
+	FUNCTION_OBJ          = "FUNCTION"
+	STRING_OBJ            = "STRING"
+	BUILTIN_OBJ           = "BUILTIN"
+	ARRAY_OBJ             = "ARRAY"
+	HASH_OBJ              = "HASH"
+	CompliledFunction_OBJ = "COMPLETED_FUNCTION"
 )
 
 type Object interface {
@@ -217,4 +219,14 @@ func (h *Hash) Inspect() string {
 
 type Hashable interface {
 	HashKey() HashKey
+}
+
+// 编译后的函数，包含编译指令
+type CompiledFunction struct {
+	Instructions code.Instructions
+}
+
+func (cf *CompiledFunction) Type() ObjectType { return CompliledFunction_OBJ }
+func (cf *CompiledFunction) Inspect() string {
+	return fmt.Sprintf("CopiledFunction[%p]", cf)
 }
