@@ -3,6 +3,7 @@ package repl
 import (
 	"Cmicro-Compiler/compiler"
 	"Cmicro-Compiler/lexer"
+	"Cmicro-Compiler/object"
 	"Cmicro-Compiler/parser"
 	"Cmicro-Compiler/vm"
 	"bufio"
@@ -20,7 +21,9 @@ func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
 	// 切换为虚拟机
 	//env := object.NewEnvironment()
-
+	constants := []object.Object{}
+	globals := make([]object.Object, vm.GlobalSize)
+	symbolTable := compiler.NewSymbolTable()
 	for {
 		fmt.Fprintf(out, PROMPT)
 		scanned := scanner.Scan()
@@ -34,6 +37,7 @@ func Start(in io.Reader, out io.Writer) {
 		p := parser.New(l)
 
 		program := p.ParseProgram()
+
 		if len(p.Errors()) != 0 {
 			printParserErrors(out, p.Errors())
 			continue
@@ -44,14 +48,18 @@ func Start(in io.Reader, out io.Writer) {
 		//if evaluated != nil {
 		//	io.WriteString(out, evaluated.Inspect())
 		//	io.WriteString(out, "\n")
-		comp := compiler.New()
+		comp := compiler.NewWithState(symbolTable, constants)
 		err := comp.Compile(program)
 		if err != nil {
 			fmt.Fprintf(out, "编译失败:\n %s\n", err)
 			continue
 		}
 
-		machine := vm.New(comp.Bytecode())
+		//machine := vm.New(comp.Bytecode())
+		code := comp.Bytecode()
+		constants = code.Constants
+
+		machine := vm.NewWithGlobalsStore(code, globals)
 		err = machine.Run()
 		if err != nil {
 			fmt.Fprintf(out, "执行字节码失败:\n %s\n", err)
