@@ -278,6 +278,23 @@ func TestHashLiterals(t *testing.T) {
 	runVmTests(t, tests)
 }
 
+// 索引
+func TestIndexExpressions(t *testing.T) {
+	tests := []vmTestCase{
+		{"[1, 2, 3][1]", 2},
+		{"[1, 2, 3][0 + 2]", 3},
+		{"[[1, 1, 1]][0][0]", 1},
+		{"[][0]", Null},
+		{"[1, 2, 3][99]", Null},
+		{"[1][-1]", Null},
+		{"{1: 1, 2: 2}[1]", 1},
+		{"{1: 1, 2: 2}[2]", 2},
+		{"{1: 1}[0]", Null},
+		{"{}[0]", Null},
+	}
+
+	runVmTests(t, tests)
+}
 func parse(input string) *ast.Program {
 	l := lexer.New(input)
 	p := parser.New(l)
