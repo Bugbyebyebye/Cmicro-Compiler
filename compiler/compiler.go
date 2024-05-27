@@ -44,10 +44,15 @@ func New() *Compiler {
 		previousInstruction: EmittedInstruction{},
 		//symbolTable:         NewSymbolTable(),
 	}
+	symbolTable := NewSymbolTable()
+
+	for i, v := range object.Builtins {
+		symbolTable.DefineBuiltin(i, v.Name)
+	}
 
 	return &Compiler{
 		constants:   []object.Object{},
-		symbolTable: NewSymbolTable(),
+		symbolTable: symbolTable,
 		scopes:      []CompilationScope{mainScope},
 		scopeIndex:  0,
 	}
@@ -241,11 +246,12 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return fmt.Errorf("undefined variable %s", node.Value)
 		}
 
-		if symbol.Scope == GlobalScope {
-			c.emit(code.OpGetGlobal, symbol.Index)
-		} else {
-			c.emit(code.OpGetLocal, symbol.Index)
-		}
+		//if symbol.Scope == GlobalScope {
+		//	c.emit(code.OpGetGlobal, symbol.Index)
+		//} else {
+		//	c.emit(code.OpGetLocal, symbol.Index)
+		//}
+		c.loadSymbol(symbol)
 
 	case *ast.IntegerLiteral:
 		integer := &object.Integer{Value: node.Value}
@@ -412,6 +418,17 @@ func (c *Compiler) enterScope() {
 	c.scopeIndex++
 	c.symbolTable = NewEnclosedSymbolTable(c.symbolTable)
 
+}
+
+func (c *Compiler) loadSymbol(s Symbol) {
+	switch s.Scope {
+	case GlobalScope:
+		c.emit(code.OpGetGlobal, s.Index)
+	case LocalScope:
+		c.emit(code.OpGetLocal, s.Index)
+	case BuiltinScope:
+		c.emit(code.OpGetBuiltin, s.Index)
+	}
 }
 
 func (c *Compiler) leaveScope() code.Instructions {

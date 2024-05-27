@@ -47,6 +47,8 @@ const (
 	//内置函数
 	OpGetLocal
 	OpSetLocal
+	//内置函数
+	OpGetBuiltin
 )
 
 type Definition struct {
@@ -81,6 +83,7 @@ var definitions = map[Opcode]*Definition{
 	OpReturn:        {"OpReturn", []int{}},
 	OpGetLocal:      {"OpGetLocal", []int{1}},
 	OpSetLocal:      {"OpSetLocal", []int{1}},
+	OpGetBuiltin:    {"OpGetBuiltin", []int{1}},
 }
 
 type Instructions []byte
