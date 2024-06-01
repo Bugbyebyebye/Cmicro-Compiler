@@ -24,6 +24,7 @@ const (
 	ARRAY_OBJ             = "ARRAY"
 	HASH_OBJ              = "HASH"
 	CompliledFunction_OBJ = "COMPLETED_FUNCTION"
+	Closure_OBJ           = "Closure"
 )
 
 type Object interface {
@@ -34,6 +35,17 @@ type Object interface {
 // Integer 整数
 type Integer struct {
 	Value int64
+}
+
+type Closure struct {
+	Fn   *CompiledFunction
+	Free []Object
+}
+
+func (c *Closure) Type() ObjectType { return Closure_OBJ }
+
+func (c *Closure) Inspect() string {
+	return fmt.Sprintf("Closure[%p]", c)
 }
 
 func (i *Integer) Inspect() string {
